@@ -1,1 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weather Station and Alerts</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/vue@2"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to right, #ff9966, #ff5e62);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        #app {
+            width: 80%;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            padding: 20px 0;
+        }
+        h2 {
+            text-align: center;
+            color: #ff5e62;
+            padding: 10px;
+            margin-top: 30px;
+        }
+        form {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+        input[type=text], input[type=number] {
+            padding: 10px;
+            margin-right: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            flex: 1;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #ff5e62;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background-color: #ff9966;
+        }
+        ul {
+            list-style: none;
+            padding-left: 0;
+            padding: 20px;
+        }
+        li {
+            background-color: #f9f9f9;
+            padding: 20px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+            position: relative;
+        }
+        li:after {
+            content: "🌤️";
+            position: absolute;
+            right: 10px;
+            top: 10px;
+        }
+        #alerts-section li:after {
+            content: "🚨";
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <h1>🌤️ Weather Station and Alerts 🚨</h1>
+
+    <div id="weather-section">
+        <h2>Add Weather Data</h2>
+        <form @submit.prevent="addWeather">
+            <input type="text" placeholder="City" v-model="newWeatherData.city">
+            <input type="number" placeholder="Temperature" v-model="newWeatherData.temperature">
+            <input type="text" placeholder="Weather" v-model="newWeatherData.weather">
+            <button type="submit">Add</button>
+        </form>
+
+        <h2>Current Weather Data</h2>
+        <ul>
+            <li v-for="data in weatherData">
+                [[ data.id ]]: [[ data.city ]] - [[ data.temperature ]] degrees, [[ data.weather ]]
+                <button @click="deleteWeather(data.id)">Delete</button>
+            </li>
+        </ul>
+    </div>
+
+    <div id="alerts-section">
+        <h2>Add Alert</h2>
+        <form @submit.prevent="addAlert">
+            <input type="text" placeholder="City" v-model="newAlertData.city">
+            <input type="text" placeholder="Alert" v-model="newAlertData.alert">
+            <button type="submit">Add</button>
+        </form>
+
+        <h2>Current Alerts</h2>
+        <ul>
+            <li v-for="data in alertData">
+                [[ data.id ]]: [[ data.city ]] - [[ data.alert ]]
+            </li>
+        </ul>
+    </div>
+</div>
+
+<script>
+        new Vue({
+            el: '#app',
+            delimiters: ['[[', ']]'],
+            data: {
+                weatherData: [],
+                newWeatherData: { city: '', temperature: '', weather: '' },
+                alertData: [],
+                newAlertData: { city: '', alert: '' }
+            },
+            created: function() {
+                this.fetchWeatherData();
+                this.fetchAlertData();
+            },
+            methods: {
+                fetchWeatherData: function() {
+                    axios.get('/weather')
+                        .then(response => this.weatherData = response.data)
+                        .catch(error => console.error(error));
+                },
+                addWeather: function() {
+                    axios.post('/weather', this.newWeatherData)
+                        .then(response => {
+                            this.weatherData.push(response.data);
+                            this.newWeatherData = { city: '', temperature: '', weather: '' };
+                        })
+                        .catch(error => console.error(error));
+                },
+                deleteWeather: function(id) {
+                    axios.delete(`/weather/${id}`)
+                        .then(response => {
+                            this.weatherData = this.weatherData.filter(data => data.id !== id);
+                        })
+                        .catch(error => console.error(error));
+                },
+                fetchAlertData: function() {
+                    axios.get('/alerts')
+                        .then(response => this.alertData = response.data)
+                        .catch(error => console.error(error));
+                },
+                addAlert: function() {
+                    axios.post('/alerts', this.newAlertData)
+                        .then(response => {
+                            this.alertData.push(response.data);
+                            this.newAlertData = { city: '', alert: '' };
+                        })
+                        .catch(error => console.error(error));
+                }
+            }
+        });
+
+</script>
+</body>
+</html>
 
